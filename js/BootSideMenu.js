@@ -136,7 +136,7 @@
             plugin.settings.onStartup($menu);
         }
 
-        $('[data-toggle="collapse"]', $menu).each(function () {
+        $('[data-bs-toggle="collapse"]', $menu).each(function () {
             var $icon = $('<span/>');
             $icon.addClass('icon');
             $icon.addClass(plugin.settings.icons.right);
@@ -214,7 +214,7 @@
         }
 
         function onItemClick() {
-            if (plugin.settings.closeOnClick && ($(this).attr('data-toggle') !== 'collapse')) {
+            if (plugin.settings.closeOnClick && ($(this).attr('data-bs-toggle') !== 'collapse')) {
                 closeMenu(true);
             }
         }
