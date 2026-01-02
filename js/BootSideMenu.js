@@ -16,9 +16,9 @@
             pushBody: true,
             closeOnClick: true,
             icons: {
-                left: 'glyphicon glyphicon-chevron-left',
-                right: 'glyphicon glyphicon-chevron-right',
-                down: 'glyphicon glyphicon-chevron-down'
+                left: 'fa fa-chevron-left',
+                right: 'fa fa-chevron-right',
+                down: 'fa fa-chevron-down'
             },
             theme: 'default',
             width: "15%",
