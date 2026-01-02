@@ -14,8 +14,8 @@
     "slide"
   ],
   "dependencies":{
-  	"jquery":"<=3",
-  	"bootstrap":"<=3.4.2"
+  	"jquery":"^3.7.1",
+  	"bootstrap":"^5.3.8"
   },
   "author":{
   	"name":"Andrea Lombardo",
