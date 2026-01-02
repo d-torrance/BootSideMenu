@@ -1,4 +1,4 @@
-This project is no longer maintained. But it still works!
+This is a fork of the original, but no longer maintained, [package by Andrea Lombardo](https://andrealombardo.github.io/BootSideMenu/) for use by the [Macaulay2](https://macaulay2.com) *Visualize* package.
 
 # BootSideMenu
 After a long time a new (hope better) version is here.
