@@ -33,5 +33,13 @@
   "bugs": {
     "url": "https://github.com/d-torrance/BootSideMenu/issues"
   },
-  "homepage": "https://github.com/d-torrance/BootSideMenu#readme"
+  "homepage": "https://github.com/d-torrance/BootSideMenu#readme",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "terser": "^5.44.1"
+  },
+  "scripts": {
+    "build": "make",
+    "clean": "make clean"
+  }
 }
