@@ -5,7 +5,7 @@
   "main": "js/BootSideMenu.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AndreaLombardo/BootSideMenu.git"
+    "url": "git+https://github.com/d-torrance/BootSideMenu.git"
   },
   "keywords": [
     "jquery",
@@ -31,7 +31,7 @@
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/AndreaLombardo/BootSideMenu/issues"
+    "url": "https://github.com/d-torrance/BootSideMenu/issues"
   },
-  "homepage": "https://github.com/AndreaLombardo/BootSideMenu#readme"
+  "homepage": "https://github.com/d-torrance/BootSideMenu#readme"
 }
