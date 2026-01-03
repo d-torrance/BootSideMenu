@@ -1,5 +1,5 @@
 /**
- * BootSideMenu v 2.1
+ * BootSideMenu
  * Authors: Andrea Lombardo, William Crandell
  * http://www.lombardoandrea.com
  * https://github.com/AndreaLombardo/BootSideMenu
