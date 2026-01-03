@@ -22,6 +22,13 @@
     "name": "Andrea Lombardo",
     "url": "http://www.lombardoandrea.com"
   },
+  "contributors": [
+    {
+      "name": "Doug Torrance",
+      "email": "dtorrance@piedmont.edu",
+      "url": "https://webwork.piedmont.edu/~dtorrance"
+    }
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/AndreaLombardo/BootSideMenu/issues"
