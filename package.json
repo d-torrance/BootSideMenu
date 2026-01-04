@@ -39,7 +39,7 @@
     "terser": "^5.44.1"
   },
   "scripts": {
-    "prepare": "npm run clean && npm run build",
+    "prepack": "npm run clean && npm run build",
     "build": "make",
     "clean": "make clean"
   },
