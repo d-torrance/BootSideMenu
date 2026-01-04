@@ -43,8 +43,7 @@
   "scripts": {
     "prepack": "npm run clean && npm run build",
     "build": "make",
-    "clean": "make clean",
-    "test": "jtr --headless"
+    "clean": "make clean"
   },
   "files": [
     "dist"
