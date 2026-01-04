@@ -1,3 +1,9 @@
+version 2.2.1
+-------------
+* Release date: 2026-01-03
+* Distribute minified js and css, too (now in "dist" directory)
+* Add a few simple unit tests using QUnit
+
 version 2.2.0
 -------------
 * Release date: 2026-01-02
