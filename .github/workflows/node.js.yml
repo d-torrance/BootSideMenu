@@ -27,7 +27,14 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm clean-install
-    - run: npm run build
-    - run: ls node_modules/jquery/dist
-    - run: npm run test
+    - name: Install dependencies
+      run: npm clean-install
+    - name: Build
+      run: npm run build
+    - name: Test
+      run: |
+        # hack: jquery-test-runner doesn't serve node_modules by default,
+        # so we hide jquery in the qunit directory (which it does serve)
+        cp node_modules/jquery/dist/jquery.min.js node_modules/qunit/qunit
+        sed -i 's|jquery/dist|qunit/qunit|' test/index.html
+        npx jtr --headless
