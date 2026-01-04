@@ -37,4 +37,4 @@ jobs:
         # so we hide jquery in the qunit directory (which it does serve)
         cp node_modules/jquery/dist/jquery.min.js node_modules/qunit/qunit
         sed -i 's|jquery/dist|qunit/qunit|' test/index.html
-        npx jtr --headless
+        npx jtr --verbose --headless
