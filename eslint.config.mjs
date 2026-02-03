@@ -24,5 +24,13 @@ export default defineConfig([
     language: "markdown/gfm",
     extends: ["markdown/recommended"],
   },
+  {
+    languageOptions: {
+      globals: {
+        define: "readonly",
+        jQuery: "readonly",
+      },
+    },
+  },
   globalIgnores(["package-lock.json"]),
 ]);
