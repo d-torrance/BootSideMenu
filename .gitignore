@@ -3,3 +3,4 @@
 .gitignore
 .DS_Store
 ./examples/00-example-template.html
+node_modules
