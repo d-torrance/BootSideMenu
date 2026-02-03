@@ -1,56 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<meta charset="utf-8">
-<title>QUnit</title>
-<link rel="stylesheet" href="../node_modules/qunit/qunit/qunit.css">
-<body>
-  <div id="qunit"></div>
-  <div id="qunit-fixture">
-    <div id="test"></div>
-  </div>
-  <script src="../node_modules/qunit/qunit/qunit.js"></script>
-  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
-  <script src="../dist/BootSideMenu.min.js"></script>
-  <script>
-    QUnit.test( 'Registration', function( assert ) {
-      assert.ok( $.fn.BootSideMenu, 'registered as a jQuery plugin' );
-    } );
-
-    QUnit.test( 'Simple left', function( assert ) {
-      const test = $('#test');
-
-      test.BootSideMenu({
-        side: "left"
+  <meta charset="utf-8" />
+  <title>QUnit</title>
+  <link rel="stylesheet" href="../node_modules/qunit/qunit/qunit.css" />
+  <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture">
+      <div id="test"></div>
+    </div>
+    <script src="../node_modules/qunit/qunit/qunit.js"></script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../dist/BootSideMenu.min.js"></script>
+    <script>
+      QUnit.test("Registration", function (assert) {
+        assert.ok($.fn.BootSideMenu, "registered as a jQuery plugin");
       });
 
-      assert.ok( test.hasClass( 'bootsidemenu' ),
-		 'has bootsidemenu class' );
-      assert.ok( test.hasClass( 'bootsidemenu-left' ),
-		 'has bootsidemenu-left class' );
-    } );
+      QUnit.test("Simple left", function (assert) {
+        const test = $("#test");
 
-    QUnit.test( 'Simple right', function( assert ) {
-      const test = $('#test');
+        test.BootSideMenu({
+          side: "left",
+        });
 
-      test.BootSideMenu({
-        side: "right"
+        assert.ok(test.hasClass("bootsidemenu"), "has bootsidemenu class");
+        assert.ok(
+          test.hasClass("bootsidemenu-left"),
+          "has bootsidemenu-left class",
+        );
       });
 
-      assert.ok( test.hasClass( 'bootsidemenu' ),
-		 'has bootsidemenu class' );
-      assert.ok( test.hasClass( 'bootsidemenu-right' ),
-		 'has bootsidemenu-right class' );
-    } );
+      QUnit.test("Simple right", function (assert) {
+        const test = $("#test");
 
-    QUnit.test( 'Custom width', function( assert ) {
-      const test = $('#test');
+        test.BootSideMenu({
+          side: "right",
+        });
 
-      test.BootSideMenu({
-        width: "360px"
+        assert.ok(test.hasClass("bootsidemenu"), "has bootsidemenu class");
+        assert.ok(
+          test.hasClass("bootsidemenu-right"),
+          "has bootsidemenu-right class",
+        );
       });
 
-      assert.equal( test.width(), 360, 'has width 360px');
-    } );
-  </script>
-</body>
+      QUnit.test("Custom width", function (assert) {
+        const test = $("#test");
+
+        test.BootSideMenu({
+          width: "360px",
+        });
+
+        assert.equal(test.width(), 360, "has width 360px");
+      });
+    </script>
+  </body>
 </html>

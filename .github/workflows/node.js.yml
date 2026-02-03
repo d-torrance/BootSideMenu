@@ -5,13 +5,12 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,20 +20,20 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v6
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm clean-install
-    - name: Build
-      run: npm run build
-    - name: Test
-      run: |
-        # hack: jquery-test-runner doesn't serve node_modules by default,
-        # so we hide jquery in the qunit directory (which it does serve)
-        cp node_modules/jquery/dist/jquery.min.js node_modules/qunit/qunit
-        sed -i 's|jquery/dist|qunit/qunit|' test/index.html
-        npx jtr --verbose --headless
+      - uses: actions/checkout@v6
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: |
+          # hack: jquery-test-runner doesn't serve node_modules by default,
+          # so we hide jquery in the qunit directory (which it does serve)
+          cp node_modules/jquery/dist/jquery.min.js node_modules/qunit/qunit
+          sed -i 's|jquery/dist|qunit/qunit|' test/index.html
+          npx jtr --verbose --headless
