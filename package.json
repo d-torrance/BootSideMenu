@@ -44,7 +44,8 @@
   "scripts": {
     "prepack": "npm run clean && npm run build",
     "build": "make",
-    "clean": "make clean"
+    "clean": "make clean",
+    "format": "prettier -w ."
   },
   "files": [
     "dist"
