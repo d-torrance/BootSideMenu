@@ -79,8 +79,7 @@
     // where "element" is the element the plugin is attached to;
     plugin.settings = {};
 
-    var $element = $(element), // reference to the jQuery version of DOM element
-      element = element; // reference to the actual DOM element
+    var $element = $(element); // reference to the jQuery version of DOM element
 
     // the "constructor" method that gets called when the object is created
 
