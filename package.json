@@ -16,7 +16,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
     "bootstrap": "^5.3.8",
-    "jquery": "^3.7.1"
+    "jquery": "^4.0.0"
   },
   "author": {
     "name": "Andrea Lombardo",
