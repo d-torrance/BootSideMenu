@@ -1,3 +1,9 @@
+## version 2.2.2
+
+- Release date: 2026-02-07
+- Update to jquery 4.0.0
+- Lint and prettify code w/ eslint and prettier
+
 ## version 2.2.1
 
 - Release date: 2026-01-03
