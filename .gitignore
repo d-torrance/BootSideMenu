@@ -1,6 +1,7 @@
-.iml
-.idea/
-.gitignore
-.DS_Store
 ./examples/00-example-template.html
+.DS_Store
+.gitignore
+.idea/
+.iml
+dist
 node_modules
