@@ -217,13 +217,16 @@
       var foo_private_method = function() {} 
       */
 
+    // pass true so that the documented onBeforeOpen/onOpen and
+    // onBeforeClose/onClose callbacks fire, as they already do when the
+    // menu is opened or closed by clicking
     plugin.open = function () {
-      openMenu();
+      openMenu(true);
       return $menu;
     };
 
     plugin.close = function () {
-      closeMenu();
+      closeMenu(true);
       return $menu;
     };
 
@@ -569,16 +572,30 @@
   };
 
   $.fn.BootSideMenu = function (options) {
+    var $elements = this;
+
+    // the static methods below are the ones documented in the README as
+    // $(selector).BootSideMenu.open() and friends; they delegate to the
+    // plugin instance stored on each element by the loop at the end
+    function eachInstance(method) {
+      return $elements.each(function () {
+        var instance = $(this).data("BootSideMenu");
+        if (instance) {
+          instance[method]();
+        }
+      });
+    }
+
     $.fn.BootSideMenu.open = function () {
-      openMenu();
+      return eachInstance("open");
     };
 
     $.fn.BootSideMenu.close = function () {
-      closeMenu();
+      return eachInstance("close");
     };
 
     $.fn.BootSideMenu.toggle = function () {
-      toggle();
+      return eachInstance("toggle");
     };
 
     // iterate through the DOM elements we are attaching the plugin to
