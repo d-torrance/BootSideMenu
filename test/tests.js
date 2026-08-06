@@ -478,6 +478,24 @@
     assert.ok(true, "no exception was thrown");
   });
 
+  // Regression test: the check used to compare against "[object Function]",
+  // which an async function does not match.
+  QUnit.test("an async callback is called", function (assert) {
+    var done = assert.async();
+
+    jQuery("#test")
+      .BootSideMenu({
+        remember: false,
+        duration: 0,
+        onOpen: async function () {
+          assert.ok(true, "the async callback ran");
+          done();
+        },
+      })
+      .data("BootSideMenu")
+      .open();
+  });
+
   QUnit.module("BootSideMenu: closeOnClick", {
     beforeEach: function () {
       clearCookies();

@@ -533,11 +533,10 @@
     }
 
     function isFunction(functionToCheck) {
-      var getType = {};
-      return (
-        functionToCheck &&
-        getType.toString.call(functionToCheck) === "[object Function]"
-      );
+      // not a toString() comparison against "[object Function]": that reports
+      // "[object AsyncFunction]" for an async callback, which would then be
+      // silently skipped
+      return typeof functionToCheck === "function";
     }
 
     function onResize() {
