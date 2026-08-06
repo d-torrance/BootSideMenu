@@ -87,8 +87,6 @@
     var prevStatus;
     var bodyProperties = {};
 
-    var hoverStatus;
-
     var $DOMBody = $("body", document);
 
     var resizeStart;
@@ -185,14 +183,7 @@
       $menu.off("click", "a.list-group-item", onItemClick);
       $menu.on("click", "a.list-group-item", onItemClick);
 
-      $menu.off("mouseenter mouseleave");
-      $menu.hover(menuOnHoverIn, menuOnHoverOut);
-
-      $(document).on("click", function () {
-        if (plugin.settings.closeOnClick && !hoverStatus) {
-          closeMenu(true);
-        }
-      });
+      $(document).on("click", onDocumentClick);
 
       window.addEventListener(
         "resize",
@@ -237,12 +228,20 @@
     // call the "constructor" method
     plugin.init();
 
-    function menuOnHoverOut() {
-      hoverStatus = false;
-    }
-
-    function menuOnHoverIn() {
-      hoverStatus = true;
+    // Close when the click landed outside the menu.  Testing the target is
+    // what makes this reliable: the flag this used to consult was set by
+    // mouseenter, which never fires before a tap on a touch screen, and
+    // nothing checked whether the menu was open, so every stray click on the
+    // page re-ran the close animation and its callbacks.
+    function onDocumentClick(event) {
+      if (
+        plugin.settings.closeOnClick &&
+        $menu.status === "opened" &&
+        event.target !== $menu[0] &&
+        !$.contains($menu[0], event.target)
+      ) {
+        closeMenu(true);
+      }
     }
 
     function onItemClick() {

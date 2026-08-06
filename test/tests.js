@@ -30,15 +30,6 @@
     });
   }
 
-  // A real pointer is over the menu when its toggler is clicked, which sets
-  // the plugin's hoverStatus and so suppresses the document-level
-  // close-on-click handler.  A bare trigger("click") skips that and closes
-  // the menu twice, so always hover first.
-  function clickToggler($menu) {
-    $menu.trigger("mouseenter");
-    $menu.find('.toggler[data-whois="toggler"]').trigger("click");
-  }
-
   QUnit.module("BootSideMenu", {
     beforeEach: function () {
       clearCookies();
@@ -383,6 +374,9 @@
     assert.deepEqual(fired, ["onBeforeClose", "onClose"]);
   });
 
+  // Regression test: a plain click on the toggler used to close the menu
+  // twice, once from the toggler and once from the document handler, which
+  // only stayed quiet if a mouseenter had happened first.
   QUnit.test(
     "clicking the toggler fires its callbacks once",
     function (assert) {
@@ -401,7 +395,7 @@
         },
       });
 
-      clickToggler($menu);
+      $menu.find('.toggler[data-whois="toggler"]').trigger("click");
 
       assert.deepEqual(fired, ["onTogglerClick", "onBeforeClose", "onClose"]);
     },
@@ -487,6 +481,47 @@
       assert.deepEqual(fired, ["onClose"], "the menu was closed");
     },
   );
+
+  // Regression test: nothing checked whether the menu was already closed, so
+  // every further click on the page re-ran the close animation and fired the
+  // callbacks again.
+  QUnit.test("an already closed menu stays quiet", function (assert) {
+    var fired = [];
+
+    jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: true,
+      onClose: function () {
+        fired.push("onClose");
+      },
+    });
+
+    jQuery(document).trigger("click");
+    jQuery(document).trigger("click");
+    jQuery(document).trigger("click");
+
+    assert.deepEqual(fired, ["onClose"], "closed once, not three times");
+  });
+
+  QUnit.test("a click inside the menu does not close it", function (assert) {
+    var $menu = jQuery("#test");
+    var fired = [];
+
+    $menu.html("<p>inner content</p>");
+    $menu.BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: true,
+      onClose: function () {
+        fired.push("onClose");
+      },
+    });
+
+    $menu.find("p").trigger("click");
+
+    assert.deepEqual(fired, [], "the menu is still open");
+  });
 
   QUnit.module("BootSideMenu: layout", {
     beforeEach: function () {
