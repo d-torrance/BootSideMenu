@@ -760,6 +760,31 @@
     assert.equal(toggler($menu).attr("aria-expanded"), "true", "still open");
   });
 
+  QUnit.test("Escape closes an open menu", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: false,
+    });
+
+    jQuery(document).trigger(keydown("Escape"));
+
+    assert.equal(toggler($menu).attr("aria-expanded"), "false");
+  });
+
+  QUnit.test("closeOnEscape: false ignores Escape", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: false,
+      closeOnEscape: false,
+    });
+
+    jQuery(document).trigger(keydown("Escape"));
+
+    assert.equal(toggler($menu).attr("aria-expanded"), "true", "still open");
+  });
+
   QUnit.module("BootSideMenu: resizing", hooks);
 
   // Regression test: the debounce used to compare the milliseconds within the

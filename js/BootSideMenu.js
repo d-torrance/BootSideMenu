@@ -41,6 +41,7 @@
       autoClose: false,
       pushBody: true,
       closeOnClick: true,
+      closeOnEscape: true,
       icons: {
         left: "fa fa-chevron-left",
         right: "fa fa-chevron-right",
@@ -204,6 +205,7 @@
       $menu.on("click", "a.list-group-item", onItemClick);
 
       $(document).on("click", onDocumentClick);
+      $(document).on("keydown", onDocumentKeydown);
 
       window.addEventListener("resize", onWindowResize, false);
     };
@@ -246,6 +248,16 @@
         $menu.status === "opened" &&
         event.target !== $menu[0] &&
         !$.contains($menu[0], event.target)
+      ) {
+        closeMenu(true);
+      }
+    }
+
+    function onDocumentKeydown(event) {
+      if (
+        plugin.settings.closeOnEscape &&
+        $menu.status === "opened" &&
+        (event.key === "Escape" || event.key === "Esc")
       ) {
         closeMenu(true);
       }
