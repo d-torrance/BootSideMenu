@@ -33,9 +33,4 @@ jobs:
       - name: Build
         run: npm run build
       - name: Test
-        run: |
-          # hack: jquery-test-runner doesn't serve node_modules by default,
-          # so we hide jquery in the qunit directory (which it does serve)
-          cp node_modules/jquery/dist/jquery.min.js node_modules/qunit/qunit
-          sed -i 's|jquery/dist|qunit/qunit|' test/index.html
-          npx jtr --verbose --headless
+        run: npm test

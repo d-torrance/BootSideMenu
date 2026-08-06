@@ -52,7 +52,11 @@
     "build": "make",
     "clean": "make clean",
     "format": "prettier -w .",
-    "lint": "prettylint ."
+    "lint": "prettylint .",
+    "pretest": "npm run build",
+    "test": "npm run test:node && npm run test:browser",
+    "test:node": "node test/jsdom-runner.js",
+    "test:browser": "jtr --headless -m ./test/middleware.mjs"
   },
   "files": [
     "dist"
