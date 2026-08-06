@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BootSideMenu: events and methods</title>
+
+    <link
+      rel="stylesheet"
+      href="../node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../dist/BootSideMenu.css" />
+  </head>
+
+  <body>
+    <div id="menu">
+      <div class="list-group">
+        <a href="#" class="list-group-item">First item</a>
+        <a href="#" class="list-group-item">Second item</a>
+      </div>
+    </div>
+
+    <div class="container py-4">
+      <h1 class="h3">Events and methods</h1>
+      <p>Every callback is logged to the browser console.</p>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary" id="open">open</button>
+        <button type="button" class="btn btn-primary" id="close">close</button>
+        <button type="button" class="btn btn-primary" id="toggle">
+          toggle
+        </button>
+      </div>
+    </div>
+
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../dist/BootSideMenu.js"></script>
+    <script>
+      jQuery(function () {
+        function report(name) {
+          return function () {
+            console.log(name);
+          };
+        }
+
+        jQuery("#menu").BootSideMenu({
+          side: "right",
+          remember: false,
+          closeOnClick: false,
+          onStartup: report("onStartup"),
+          onTogglerClick: report("onTogglerClick"),
+          onBeforeOpen: report("onBeforeOpen"),
+          onOpen: report("onOpen"),
+          onBeforeClose: report("onBeforeClose"),
+          onClose: report("onClose"),
+        });
+
+        // the instance carries the methods; $("#menu").BootSideMenu.open()
+        // and friends work too
+        var menu = jQuery("#menu").data("BootSideMenu");
+
+        jQuery("#open").on("click", function () {
+          menu.open();
+        });
+
+        jQuery("#close").on("click", function () {
+          menu.close();
+        });
+
+        jQuery("#toggle").on("click", function () {
+          menu.toggle();
+        });
+      });
+    </script>
+  </body>
+</html>

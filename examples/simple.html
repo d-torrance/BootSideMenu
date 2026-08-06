@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BootSideMenu: a simple menu</title>
+
+    <link
+      rel="stylesheet"
+      href="../node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../dist/BootSideMenu.css" />
+  </head>
+
+  <body>
+    <!-- the menu needs an id: that is what its remembered state is keyed on -->
+    <div id="menu">
+      <div class="list-group">
+        <a href="#" class="list-group-item">First item</a>
+        <a href="#" class="list-group-item">Second item</a>
+        <a href="#" class="list-group-item">Third item</a>
+      </div>
+    </div>
+
+    <div class="container py-4">
+      <h1 class="h3">A simple menu</h1>
+      <p>The smallest thing that works.</p>
+    </div>
+
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../dist/BootSideMenu.js"></script>
+    <script>
+      jQuery(function () {
+        jQuery("#menu").BootSideMenu({
+          side: "left",
+          width: "15%",
+        });
+      });
+    </script>
+  </body>
+</html>

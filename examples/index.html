@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BootSideMenu control panel</title>
+
+    <!-- Everything is loaded by relative path from the working tree, so this
+         page opens straight from the filesystem, with no server -- which is
+         also how the Macaulay2 Visualize package loads it.  Run "npm run
+         build" first: the plugin is taken from dist. -->
+    <link
+      rel="stylesheet"
+      href="../node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../dist/BootSideMenu.css" />
+
+    <style>
+      /* The panel sits in normal flow and stays readable at phone widths on
+         purpose: below 480px the plugin turns pushBody off and closeOnClick
+         on, and that is exactly the behaviour this page exists to show. */
+      .log {
+        height: 14rem;
+        overflow-y: auto;
+        font-family: var(--bs-font-monospace);
+        font-size: 0.8rem;
+      }
+
+      .readout {
+        font-family: var(--bs-font-monospace);
+      }
+
+      body {
+        padding-bottom: 3rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- the menu itself; the plugin wraps whatever is in here -->
+    <div id="menu"></div>
+
+    <!-- re-cloned on every rebuild, so each configuration starts from
+         identical markup -->
+    <template id="menu-template">
+      <div class="list-group">
+        <a href="#demo-group" class="list-group-item" data-bs-toggle="collapse"
+          >A collapsing group</a
+        >
+        <div class="list-group collapse" id="demo-group">
+          <a href="#" class="list-group-item">First item</a>
+          <a href="#" class="list-group-item">Second item</a>
+        </div>
+        <a href="#" class="list-group-item">A plain link</a>
+        <button type="button" class="list-group-item" id="demo-button">
+          A button with a handler
+        </button>
+        <div class="list-group-item">
+          <label class="form-label" for="demo-input">A form control</label>
+          <input class="form-control" id="demo-input" type="text" />
+        </div>
+      </div>
+    </template>
+
+    <div class="container py-4">
+      <h1 class="h3">BootSideMenu</h1>
+      <p class="text-body-secondary">
+        Change any option to tear the menu down and build it again with the new
+        settings. The configuration is kept in the URL, so a reload comes back
+        to the same one &mdash; which is what makes
+        <code>remember</code> testable here.
+      </p>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <h2 class="h5">Options</h2>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label" for="side">side</label>
+              <select class="form-select" id="side">
+                <option value="left">left</option>
+                <option value="right">right</option>
+              </select>
+            </div>
+
+            <div class="col-sm-6">
+              <label class="form-label" for="theme">theme</label>
+              <select class="form-select" id="theme">
+                <option value="default">default</option>
+                <option value="darkblue">darkblue</option>
+                <option value="dracula">dracula</option>
+                <option value="pinklady">pinklady</option>
+                <option value="somebook">somebook</option>
+                <option value="zenburn">zenburn</option>
+              </select>
+            </div>
+
+            <div class="col-sm-6">
+              <label class="form-label" for="width">width</label>
+              <input class="form-control" id="width" type="text" />
+            </div>
+
+            <div class="col-sm-6">
+              <label class="form-label" for="duration">duration (ms)</label>
+              <input class="form-control" id="duration" type="number" min="0" />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="togglerLabel">togglerLabel</label>
+              <input class="form-control" id="togglerLabel" type="text" />
+            </div>
+
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" id="pushBody" type="checkbox" />
+                <label class="form-check-label" for="pushBody">pushBody</label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  id="closeOnClick"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="closeOnClick"
+                  >closeOnClick</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  id="closeOnEscape"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="closeOnEscape"
+                  >closeOnEscape</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  id="autoClose"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="autoClose"
+                  >autoClose</label
+                >
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" id="remember" type="checkbox" />
+                <label class="form-check-label" for="remember">remember</label>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="h5 mt-4">Methods</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-primary" id="action-open">
+              open()
+            </button>
+            <button type="button" class="btn btn-primary" id="action-close">
+              close()
+            </button>
+            <button type="button" class="btn btn-primary" id="action-toggle">
+              toggle()
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              id="action-isopen"
+            >
+              isOpen()
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              id="action-destroy"
+            >
+              destroy()
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              id="action-rebuild"
+            >
+              rebuild
+            </button>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <h2 class="h5">What the plugin sees</h2>
+          <dl class="row mb-4">
+            <dt class="col-6">window width</dt>
+            <dd class="col-6 readout" id="readout-width">&mdash;</dd>
+
+            <dt class="col-6">state</dt>
+            <dd class="col-6 readout" id="readout-state">&mdash;</dd>
+
+            <dt class="col-6">effective settings</dt>
+            <dd class="col-6 readout" id="readout-effective">&mdash;</dd>
+
+            <dt class="col-6">prefers-reduced-motion</dt>
+            <dd class="col-6 readout" id="readout-motion">&mdash;</dd>
+
+            <dt class="col-6">storage available</dt>
+            <dd class="col-6 readout" id="readout-storage">&mdash;</dd>
+          </dl>
+
+          <h2 class="h5">
+            Event log
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary float-end"
+              id="action-clear-log"
+            >
+              clear
+            </button>
+          </h2>
+          <div class="border rounded p-2 log" id="log"></div>
+        </div>
+      </div>
+
+      <h2 class="h5 mt-4">Things worth trying</h2>
+      <ul>
+        <li>
+          Open the menu, reload the page with <code>remember</code> on: the
+          state comes back. The storage readout says which of the two stores did
+          it &mdash; over <code>file://</code> a cookie will not work in Chrome,
+          but localStorage does.
+        </li>
+        <li>
+          With <code>pushBody</code> on and the menu open, narrow the window
+          below 480 pixels: the plugin stops pushing, and the body margin has to
+          go back with it.
+        </li>
+        <li>
+          Tab to the toggler: it takes focus, Enter and Space both work, and
+          Escape closes the menu.
+        </li>
+        <li>
+          Press the button inside the menu. Its handler is attached before the
+          plugin runs, so the log entry proves initialization left the original
+          nodes alone.
+        </li>
+        <li>
+          Rebuild a few times and watch the log: a callback appearing twice
+          would mean <code>destroy()</code> left a handler behind.
+        </li>
+      </ul>
+    </div>
+
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../dist/BootSideMenu.js"></script>
+    <script src="demo.js"></script>
+  </body>
+</html>
