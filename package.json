@@ -2,7 +2,7 @@
   "name": "@macaulay2/boot-side-menu",
   "version": "2.2.2",
   "description": "A jQuery plugin to easily create a sliding menu, working on a Bootstrap based application.",
-  "main": "js/BootSideMenu.js",
+  "main": "dist/BootSideMenu.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/d-torrance/BootSideMenu.git"
