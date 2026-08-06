@@ -668,6 +668,98 @@
     assert.deepEqual(fired, [], "the menu is still open");
   });
 
+  QUnit.module("BootSideMenu: keyboard", hooks);
+
+  function toggler($menu) {
+    return $menu.find('.toggler[data-whois="toggler"]');
+  }
+
+  function keydown(key) {
+    return jQuery.Event("keydown", { key: key });
+  }
+
+  QUnit.test("the toggler is exposed as a button", function (assert) {
+    var $toggler = toggler(
+      jQuery("#test").BootSideMenu({ remember: false, duration: 0 }),
+    );
+
+    assert.equal($toggler.attr("role"), "button", "role");
+    assert.equal($toggler.attr("tabindex"), "0", "reachable by tab");
+    assert.equal($toggler.attr("aria-label"), "Toggle menu", "labelled");
+    assert.equal(
+      $toggler.attr("aria-controls"),
+      "test-menu-wrapper",
+      "points at the content it controls",
+    );
+  });
+
+  QUnit.test("togglerLabel overrides the label", function (assert) {
+    var $toggler = toggler(
+      jQuery("#test").BootSideMenu({
+        remember: false,
+        duration: 0,
+        togglerLabel: "Ouvrir le menu",
+      }),
+    );
+
+    assert.equal($toggler.attr("aria-label"), "Ouvrir le menu");
+  });
+
+  QUnit.test("aria-expanded follows the menu state", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: false,
+    });
+    var instance = $menu.data("BootSideMenu");
+
+    assert.equal(toggler($menu).attr("aria-expanded"), "true", "starts open");
+
+    instance.close();
+    assert.equal(toggler($menu).attr("aria-expanded"), "false", "closed");
+
+    instance.open();
+    assert.equal(toggler($menu).attr("aria-expanded"), "true", "open again");
+  });
+
+  QUnit.test("Enter on the toggler toggles the menu", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: false,
+    });
+
+    toggler($menu).trigger(keydown("Enter"));
+    assert.equal(toggler($menu).attr("aria-expanded"), "false", "closed");
+
+    toggler($menu).trigger(keydown("Enter"));
+    assert.equal(toggler($menu).attr("aria-expanded"), "true", "open again");
+  });
+
+  QUnit.test("Space on the toggler toggles the menu", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: false,
+    });
+
+    toggler($menu).trigger(keydown(" "));
+
+    assert.equal(toggler($menu).attr("aria-expanded"), "false");
+  });
+
+  QUnit.test("another key on the toggler does nothing", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+      closeOnClick: false,
+    });
+
+    toggler($menu).trigger(keydown("a"));
+
+    assert.equal(toggler($menu).attr("aria-expanded"), "true", "still open");
+  });
+
   QUnit.module("BootSideMenu: resizing", hooks);
 
   // Regression test: the debounce used to compare the milliseconds within the

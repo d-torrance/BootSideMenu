@@ -48,6 +48,7 @@
       },
       theme: "default",
       width: "15%",
+      togglerLabel: "Toggle menu",
       onTogglerClick: function () {
         //code to be executed when the toggler arrow was clicked
       },
@@ -113,8 +114,8 @@
       // handler, jQuery data or live state the caller had attached to it
       $element.wrapInner('<div class="menu-wrapper"></div>');
       $element.append(
-        '<div class="toggler" data-whois="toggler">' +
-          '<span class="icon">&nbsp;</span>' +
+        '<div class="toggler" data-whois="toggler" role="button" tabindex="0">' +
+          '<span class="icon" aria-hidden="true">&nbsp;</span>' +
           "</div>",
       );
 
@@ -130,8 +131,15 @@
       $menu.id = $menu.attr("id");
       $menu.storageKey = "bsm2-" + $menu.id;
       $menu.toggler = $menu.find('[data-whois="toggler"]');
+      $menu.wrapper = $menu.find(".menu-wrapper");
       $menu.originalPushBody = plugin.settings.pushBody;
       $menu.originalCloseOnClick = plugin.settings.closeOnClick;
+
+      $menu.toggler.attr("aria-label", plugin.settings.togglerLabel);
+      if ($menu.id) {
+        $menu.wrapper.attr("id", $menu.id + "-menu-wrapper");
+        $menu.toggler.attr("aria-controls", $menu.id + "-menu-wrapper");
+      }
 
       if (plugin.settings.remember && !$menu.id) {
         // the stored state is keyed on the id; without one every anonymous
@@ -179,6 +187,7 @@
 
       $menu.off("click", '.toggler[data-whois="toggler"]', toggle);
       $menu.on("click", '.toggler[data-whois="toggler"]', toggle);
+      $menu.on("keydown", '.toggler[data-whois="toggler"]', onTogglerKeydown);
 
       $menu.off("click", ".list-group-item");
       $menu.on("click", ".list-group-item", function () {
@@ -242,6 +251,19 @@
       }
     }
 
+    // the toggler is a div, so it gets none of a button's keyboard behaviour
+    // for free
+    function onTogglerKeydown(event) {
+      if (
+        event.key === "Enter" ||
+        event.key === " " ||
+        event.key === "Spacebar"
+      ) {
+        event.preventDefault();
+        toggle();
+      }
+    }
+
     function onWindowResize() {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(onResize, wait);
@@ -269,6 +291,16 @@
       } else {
         openMenu(true);
       }
+    }
+
+    // keep the status and what we tell assistive technology in one place, so
+    // that the two cannot drift apart
+    function setStatus(status) {
+      $menu.status = status;
+      $menu.toggler.attr(
+        "aria-expanded",
+        status === "opened" ? "true" : "false",
+      );
     }
 
     function switchArrow(side) {
@@ -320,7 +352,7 @@
 
     function startClosed() {
       if (plugin.settings.side === "left") {
-        $menu.status = "closed";
+        setStatus("closed");
         $menu.hide().animate(
           {
             left: -($menu.width() + 2),
@@ -332,7 +364,7 @@
           },
         );
       } else if (plugin.settings.side === "right") {
-        $menu.status = "closed";
+        setStatus("closed");
         $menu.hide().animate(
           {
             right: -($menu.width() + 2),
@@ -353,7 +385,7 @@
         switchArrow("right");
       }
 
-      $menu.status = "opened";
+      setStatus("opened");
       applyBodyMargin();
     }
 
@@ -383,7 +415,7 @@
             duration: plugin.settings.duration,
             done: function () {
               switchArrow("left");
-              $menu.status = "closed";
+              setStatus("closed");
 
               if (execFunctions) {
                 if (
@@ -413,7 +445,7 @@
             duration: plugin.settings.duration,
             done: function () {
               switchArrow("right");
-              $menu.status = "closed";
+              setStatus("closed");
 
               if (execFunctions) {
                 if (
@@ -460,7 +492,7 @@
             duration: plugin.settings.duration,
             done: function () {
               switchArrow("right");
-              $menu.status = "opened";
+              setStatus("opened");
 
               if (execFunctions) {
                 if (
@@ -490,7 +522,7 @@
             duration: plugin.settings.duration,
             done: function () {
               switchArrow("left");
-              $menu.status = "opened";
+              setStatus("opened");
 
               if (execFunctions) {
                 if (
