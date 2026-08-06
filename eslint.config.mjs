@@ -32,5 +32,23 @@ export default defineConfig([
       },
     },
   },
-  globalIgnores(["package-lock.json"]),
+  // These run in node, not a browser.
+  {
+    files: [
+      "eslint.config.mjs",
+      "test/jsdom-runner.js",
+      "test/middleware.mjs",
+      "test/umd-tests.js",
+    ],
+    languageOptions: { globals: globals.node },
+  },
+  // The test suite is loaded by test/index.html and by test/jsdom-runner.js,
+  // each of which provides QUnit.
+  {
+    files: ["test/tests.js"],
+    languageOptions: { globals: { QUnit: "readonly" } },
+  },
+  // dist is built by the Makefile; there is nothing there to lint that is not
+  // already linted in js.
+  globalIgnores(["dist/", "package-lock.json"]),
 ]);
