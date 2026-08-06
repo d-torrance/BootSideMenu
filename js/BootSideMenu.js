@@ -83,8 +83,6 @@
 
     // the "constructor" method that gets called when the object is created
 
-    var initialCode;
-    var newCode;
     var $menu;
     var prevStatus;
     var bodyProperties = {};
@@ -106,15 +104,15 @@
       bodyProperties["originalMarginRight"] = $DOMBody.css("margin-right");
       bodyProperties["width"] = $DOMBody.width();
 
-      initialCode = $element.html();
-
-      newCode = '<div class="menu-wrapper">' + initialCode + "</div>";
-      newCode += '<div class="toggler" data-whois="toggler">';
-      newCode += '<span class="icon">&nbsp;</span>';
-      newCode += "</div>";
-
-      $element.empty();
-      $element.html(newCode);
+      // wrap what is already there rather than re-parsing it: reinserting the
+      // markup as a string would replace every child, throwing away any event
+      // handler, jQuery data or live state the caller had attached to it
+      $element.wrapInner('<div class="menu-wrapper"></div>');
+      $element.append(
+        '<div class="toggler" data-whois="toggler">' +
+          '<span class="icon">&nbsp;</span>' +
+          "</div>",
+      );
 
       $menu = $element;
 

@@ -136,6 +136,31 @@
     },
   );
 
+  // Regression test: the content used to be read out as a string and written
+  // back, which replaced every node and so silently dropped anything bound to
+  // the caller's markup.
+  QUnit.test("wrapping keeps the original nodes intact", function (assert) {
+    var $menu = jQuery("#test");
+    var $button = jQuery("<button/>").text("press me");
+    var clicks = 0;
+
+    $button.on("click", function () {
+      clicks += 1;
+    });
+    $button.appendTo($menu);
+
+    $menu.BootSideMenu({ remember: false, closeOnClick: false });
+
+    assert.strictEqual(
+      $menu.find("button")[0],
+      $button[0],
+      "it is the same element, not a copy",
+    );
+
+    $menu.find("button").trigger("click");
+    assert.equal(clicks, 1, "its event handler survived");
+  });
+
   QUnit.test("toggler arrow points the way the menu closes", function (assert) {
     var $left = jQuery("#test").BootSideMenu({
       side: "left",
