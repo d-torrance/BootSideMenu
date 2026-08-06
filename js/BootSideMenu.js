@@ -101,6 +101,9 @@
       // the plugin's final properties are the merged default and
       // user-provided options (if any)
       plugin.settings = $.extend({}, defaults, userOptions);
+      if (plugin.settings.side !== "right") {
+        plugin.settings.side = "left";
+      }
       bodyProperties["originalMarginLeft"] = $DOMBody.css("margin-left");
       bodyProperties["originalMarginRight"] = $DOMBody.css("margin-right");
       bodyProperties["width"] = $DOMBody.width();
@@ -122,11 +125,7 @@
       $menu.addClass(plugin.settings.theme);
       $menu.css("width", plugin.settings.width);
 
-      if (plugin.settings.side === "left") {
-        $menu.addClass("bootsidemenu-left");
-      } else if (plugin.settings.side === "right") {
-        $menu.addClass("bootsidemenu-right");
-      }
+      $menu.addClass("bootsidemenu-" + plugin.settings.side);
 
       $menu.id = $menu.attr("id");
       $menu.storageKey = "bsm2-" + $menu.id;

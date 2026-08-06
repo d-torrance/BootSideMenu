@@ -133,6 +133,20 @@
     );
   });
 
+  QUnit.test("an unrecognized side falls back to left", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      side: "sideways",
+      remember: false,
+    });
+
+    assert.ok($menu.hasClass("bootsidemenu-left"), "positioned on the left");
+    assert.equal(
+      $menu.data("BootSideMenu").settings.side,
+      "left",
+      "and says so",
+    );
+  });
+
   QUnit.test("theme is applied as a class", function (assert) {
     var $menu = jQuery("#test").BootSideMenu({
       theme: "dracula",
