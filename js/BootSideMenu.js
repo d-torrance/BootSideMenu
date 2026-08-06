@@ -134,6 +134,15 @@
       $menu.originalPushBody = plugin.settings.pushBody;
       $menu.originalCloseOnClick = plugin.settings.closeOnClick;
 
+      if (plugin.settings.remember && !$menu.id) {
+        // the stored state is keyed on the id; without one every anonymous
+        // menu on the page would share the same entry
+        plugin.settings.remember = false;
+        console.warn(
+          "BootSideMenu: the menu needs an id for 'remember' to work",
+        );
+      }
+
       if (plugin.settings.remember) {
         prevStatus = readStatus($menu.storageKey);
       } else {

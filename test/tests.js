@@ -388,6 +388,43 @@
     );
   });
 
+  QUnit.test("a menu with no id remembers nothing", function (assert) {
+    var warnings = [];
+    var warn = window.console.warn;
+
+    window.console.warn = function (message) {
+      warnings.push(message);
+    };
+
+    try {
+      var instance = jQuery("<div/>")
+        .appendTo("#qunit-fixture")
+        .BootSideMenu({ remember: true, duration: 0 })
+        .data("BootSideMenu");
+
+      instance.close();
+
+      assert.equal(instance.settings.remember, false, "remember is turned off");
+      assert.equal(
+        warnings.length,
+        1,
+        "and the reason is reported: " + warnings[0],
+      );
+      assert.equal(
+        document.cookie.indexOf("bsm2-undefined"),
+        -1,
+        "no cookie under a placeholder name",
+      );
+      assert.strictEqual(
+        window.localStorage.getItem("bsm2-undefined"),
+        null,
+        "nothing in localStorage either",
+      );
+    } finally {
+      window.console.warn = warn;
+    }
+  });
+
   QUnit.module("BootSideMenu: methods and events", hooks);
 
   // Regression test: these three are documented in the README, but used to
