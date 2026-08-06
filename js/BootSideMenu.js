@@ -108,7 +108,6 @@
     var namespace = "bootsidemenu" + ++instanceCount;
     var resizeTimer;
     var wait = 250;
-    //var options = $.extend({}, defaults, userOptions);
 
     plugin.init = function () {
       // the plugin's final properties are the merged default and
@@ -119,7 +118,6 @@
       }
       bodyProperties["originalMarginLeft"] = $DOMBody.css("margin-left");
       bodyProperties["originalMarginRight"] = $DOMBody.css("margin-right");
-      bodyProperties["width"] = $DOMBody.width();
 
       // wrap what is already there rather than re-parsing it: reinserting the
       // markup as a string would replace every child, throwing away any event
@@ -137,7 +135,6 @@
       $menu.addClass("bootsidemenu");
       $menu.addClass(plugin.settings.theme);
       $menu.css("width", plugin.settings.width);
-
       $menu.addClass("bootsidemenu-" + plugin.settings.side);
 
       $menu.id = $menu.attr("id");
@@ -151,9 +148,7 @@
       if ($menu.id) {
         $menu.wrapper.attr("id", $menu.id + "-menu-wrapper");
         $menu.toggler.attr("aria-controls", $menu.id + "-menu-wrapper");
-      }
-
-      if (plugin.settings.remember && !$menu.id) {
+      } else if (plugin.settings.remember) {
         // the stored state is keyed on the id; without one every anonymous
         // menu on the page would share the same entry
         plugin.settings.remember = false;
@@ -182,12 +177,7 @@
           break;
       }
 
-      if (
-        plugin.settings.onStartup !== undefined &&
-        isFunction(plugin.settings.onStartup)
-      ) {
-        plugin.settings.onStartup($menu);
-      }
+      fire("onStartup", true);
 
       $('[data-bs-toggle="collapse"]', $menu).each(function () {
         var $icon = $("<span/>");
@@ -216,7 +206,7 @@
 
     /*
 			plugin.foo_public_method = function() {}
-      var foo_private_method = function() {} 
+      var foo_private_method = function() {}
       */
 
     // pass true so that the documented onBeforeOpen/onOpen and
@@ -241,10 +231,10 @@
       return $menu.status === "opened";
     };
 
-    // Undo everything init() did, so that the element can be handed back to
-    // the caller in the state it was in -- or initialized again with different
-    // options, which the guard in $.fn.BootSideMenu otherwise makes
-    // impossible.  The stored state is deliberately left alone: remember
+    // undo everything init() did, so that the element can be handed back to
+    // the caller in the state it was in -- or initialized again with
+    // different options, which the guard in $.fn.BootSideMenu otherwise makes
+    // impossible.  The stored state is deliberately left alone: "remember"
     // should still remember.
     plugin.destroy = function () {
       // Stop anything still in flight first.  A "done" callback firing after
@@ -293,6 +283,31 @@
     // call the "constructor" method
     plugin.init();
 
+    function fire(name, execFunctions) {
+      if (execFunctions && isFunction(plugin.settings[name])) {
+        plugin.settings[name]($menu);
+      }
+    }
+
+    function onItemClick() {
+      if (
+        plugin.settings.closeOnClick &&
+        $(this).attr("data-bs-toggle") !== "collapse"
+      ) {
+        closeMenu(true);
+      }
+    }
+
+    function onListItemClick() {
+      $menu.find(".list-group-item").each(function () {
+        $(this).removeClass("active");
+      });
+      $(this).addClass("active");
+      $(".icon", $(this))
+        .toggleClass(plugin.settings.icons.right)
+        .toggleClass(plugin.settings.icons.down);
+    }
+
     // Close when the click landed outside the menu.  Testing the target is
     // what makes this reliable: the flag this used to consult was set by
     // mouseenter, which never fires before a tap on a touch screen, and
@@ -337,32 +352,8 @@
       resizeTimer = setTimeout(onResize, wait);
     }
 
-    function onListItemClick() {
-      $menu.find(".list-group-item").each(function () {
-        $(this).removeClass("active");
-      });
-      $(this).addClass("active");
-      $(".icon", $(this))
-        .toggleClass(plugin.settings.icons.right)
-        .toggleClass(plugin.settings.icons.down);
-    }
-
-    function onItemClick() {
-      if (
-        plugin.settings.closeOnClick &&
-        $(this).attr("data-bs-toggle") !== "collapse"
-      ) {
-        closeMenu(true);
-      }
-    }
-
     function toggle() {
-      if (
-        plugin.settings.onTogglerClick !== undefined &&
-        isFunction(plugin.settings.onTogglerClick)
-      ) {
-        plugin.settings.onTogglerClick($menu);
-      }
+      fire("onTogglerClick", true);
 
       if ($menu.status === "opened") {
         closeMenu(true);
@@ -372,7 +363,7 @@
     }
 
     // keep the status and what we tell assistive technology in one place, so
-    // that the two cannot drift apart
+    // the two cannot drift apart
     function setStatus(status) {
       $menu.status = status;
       $menu.toggler.attr(
@@ -395,20 +386,24 @@
       $icon.addClass("icon");
     }
 
+    function oppositeSide() {
+      return plugin.settings.side === "left" ? "right" : "left";
+    }
+
     function bodyMarginProperty() {
-      return plugin.settings.side === "right" ? "marginRight" : "marginLeft";
+      return plugin.settings.side === "left" ? "marginLeft" : "marginRight";
     }
 
     function originalBodyMargin() {
-      return plugin.settings.side === "right"
-        ? bodyProperties.originalMarginRight
-        : bodyProperties.originalMarginLeft;
+      return plugin.settings.side === "left"
+        ? bodyProperties.originalMarginLeft
+        : bodyProperties.originalMarginRight;
     }
 
     // Set the body margin without animating, for startup and for resizes.
     // The "else" is the half that used to be missing: shrinking the window
-    // past the small-body threshold turns pushBody off, and the body was then
-    // left holding a margin that nothing would ever clear.
+    // past the small-body threshold turns pushBody off, and the body was
+    // then left holding a margin nothing would ever clear.
     function applyBodyMargin() {
       if (plugin.settings.pushBody) {
         $DOMBody.css(bodyMarginProperty(), $menu.width() + 20);
@@ -420,7 +415,6 @@
       }
     }
 
-    // these two were spelled out again here, branch for branch
     function animationDuration() {
       return window.matchMedia &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -437,116 +431,44 @@
     }
 
     function startClosed() {
-      if (plugin.settings.side === "left") {
-        setStatus("closed");
-        $menu.hide().animate(
-          {
-            left: -($menu.width() + 2),
-          },
-          1,
-          function () {
-            $menu.show();
-            switchArrow("left");
-          },
-        );
-      } else if (plugin.settings.side === "right") {
-        setStatus("closed");
-        $menu.hide().animate(
-          {
-            right: -($menu.width() + 2),
-          },
-          1,
-          function () {
-            $menu.show();
-            switchArrow("right");
-          },
-        );
-      }
+      var offset = {};
+      offset[plugin.settings.side] = -($menu.width() + 2);
+
+      setStatus("closed");
+      $menu.hide().animate(offset, 1, function () {
+        $menu.show();
+        switchArrow(plugin.settings.side);
+      });
     }
 
     function startOpened() {
-      if (plugin.settings.side === "right") {
-        switchArrow("left");
-      } else {
-        switchArrow("right");
-      }
-
+      switchArrow(oppositeSide());
       setStatus("opened");
       applyBodyMargin();
     }
 
     function closeMenu(execFunctions) {
-      if (execFunctions) {
-        if (
-          plugin.settings.onBeforeClose !== undefined &&
-          isFunction(plugin.settings.onBeforeClose)
-        ) {
-          plugin.settings.onBeforeClose($menu);
-        }
+      var offset = {};
+      var bodyMargin = {};
+
+      fire("onBeforeClose", execFunctions);
+
+      if (plugin.settings.pushBody) {
+        bodyMargin[bodyMarginProperty()] = originalBodyMargin();
+        $DOMBody.animate(bodyMargin, { duration: animationDuration() });
+        bodyPushed = false;
+        bodyTouched = true;
       }
-      if (plugin.settings.side === "left") {
-        if (plugin.settings.pushBody) {
-          $DOMBody.animate(
-            { marginLeft: bodyProperties.originalMarginLeft },
-            { duration: animationDuration() },
-          );
-          bodyPushed = false;
-          bodyTouched = true;
-        }
 
-        $menu.animate(
-          {
-            left: -($menu.width() + 2),
-          },
-          {
-            duration: animationDuration(),
-            done: function () {
-              switchArrow("left");
-              setStatus("closed");
-
-              if (execFunctions) {
-                if (
-                  plugin.settings.onClose !== undefined &&
-                  isFunction(plugin.settings.onClose)
-                ) {
-                  plugin.settings.onClose($menu);
-                }
-              }
-            },
-          },
-        );
-      } else if (plugin.settings.side === "right") {
-        if (plugin.settings.pushBody) {
-          $DOMBody.animate(
-            { marginRight: bodyProperties.originalMarginRight },
-            { duration: animationDuration() },
-          );
-          bodyPushed = false;
-          bodyTouched = true;
-        }
-
-        $menu.animate(
-          {
-            right: -($menu.width() + 2),
-          },
-          {
-            duration: animationDuration(),
-            done: function () {
-              switchArrow("right");
-              setStatus("closed");
-
-              if (execFunctions) {
-                if (
-                  plugin.settings.onClose !== undefined &&
-                  isFunction(plugin.settings.onClose)
-                ) {
-                  plugin.settings.onClose($menu);
-                }
-              }
-            },
-          },
-        );
-      }
+      offset[plugin.settings.side] = -($menu.width() + 2);
+      $menu.animate(offset, {
+        duration: animationDuration(),
+        done: function () {
+          switchArrow(plugin.settings.side);
+          setStatus("closed");
+          fire("onClose", execFunctions);
+        },
+      });
 
       if (plugin.settings.remember) {
         storeStatus($menu.storageKey, "closed");
@@ -554,78 +476,27 @@
     }
 
     function openMenu(execFunctions) {
-      if (execFunctions) {
-        if (
-          plugin.settings.onBeforeOpen !== undefined &&
-          isFunction(plugin.settings.onBeforeOpen)
-        ) {
-          plugin.settings.onBeforeOpen($menu);
-        }
+      var offset = {};
+      var bodyMargin = {};
+
+      fire("onBeforeOpen", execFunctions);
+
+      if (plugin.settings.pushBody) {
+        bodyMargin[bodyMarginProperty()] = $menu.width() + 20;
+        $DOMBody.animate(bodyMargin, { duration: animationDuration() });
+        bodyPushed = true;
+        bodyTouched = true;
       }
 
-      if (plugin.settings.side === "left") {
-        if (plugin.settings.pushBody) {
-          $DOMBody.animate(
-            { marginLeft: $menu.width() + 20 },
-            { duration: animationDuration() },
-          );
-          bodyPushed = true;
-          bodyTouched = true;
-        }
-
-        $menu.animate(
-          {
-            left: 0,
-          },
-          {
-            duration: animationDuration(),
-            done: function () {
-              switchArrow("right");
-              setStatus("opened");
-
-              if (execFunctions) {
-                if (
-                  plugin.settings.onOpen !== undefined &&
-                  isFunction(plugin.settings.onOpen)
-                ) {
-                  plugin.settings.onOpen($menu);
-                }
-              }
-            },
-          },
-        );
-      } else if (plugin.settings.side === "right") {
-        if (plugin.settings.pushBody) {
-          $DOMBody.animate(
-            { marginRight: $menu.width() + 20 },
-            { duration: animationDuration() },
-          );
-          bodyPushed = true;
-          bodyTouched = true;
-        }
-
-        $menu.animate(
-          {
-            right: 0,
-          },
-          {
-            duration: animationDuration(),
-            done: function () {
-              switchArrow("left");
-              setStatus("opened");
-
-              if (execFunctions) {
-                if (
-                  plugin.settings.onOpen !== undefined &&
-                  isFunction(plugin.settings.onOpen)
-                ) {
-                  plugin.settings.onOpen($menu);
-                }
-              }
-            },
-          },
-        );
-      }
+      offset[plugin.settings.side] = 0;
+      $menu.animate(offset, {
+        duration: animationDuration(),
+        done: function () {
+          switchArrow(oppositeSide());
+          setStatus("opened");
+          fire("onOpen", execFunctions);
+        },
+      });
 
       if (plugin.settings.remember) {
         storeStatus($menu.storageKey, "opened");
