@@ -30,6 +30,53 @@
     });
   }
 
+  // What the plugin reads for $(window).width() is documentElement.clientWidth,
+  // so shadowing it with an own property is enough to pretend the window is a
+  // different size -- in a real browser as well as in jsdom.
+  var savedWidth;
+
+  function setWindowWidth(width) {
+    if (savedWidth === undefined) {
+      savedWidth =
+        Object.getOwnPropertyDescriptor(
+          document.documentElement,
+          "clientWidth",
+        ) || null;
+    }
+
+    Object.defineProperty(document.documentElement, "clientWidth", {
+      value: width,
+      configurable: true,
+    });
+  }
+
+  function restoreWindowWidth() {
+    if (savedWidth === undefined) {
+      return;
+    }
+
+    if (savedWidth) {
+      Object.defineProperty(
+        document.documentElement,
+        "clientWidth",
+        savedWidth,
+      );
+    } else {
+      delete document.documentElement.clientWidth;
+    }
+
+    savedWidth = undefined;
+  }
+
+  // The debounce this replaced compared milliseconds-within-the-second, so
+  // "start + 250" could exceed 999 and a resize beginning this late in a
+  // second was dropped and never handled.  Firing from here makes that a
+  // certain failure rather than a one-in-four flake.
+  function atLateMillisecond(callback) {
+    var ms = new Date().getMilliseconds();
+    window.setTimeout(callback, ms >= 750 ? 0 : 750 - ms);
+  }
+
   QUnit.module("BootSideMenu", {
     beforeEach: function () {
       clearCookies();
@@ -521,6 +568,47 @@
     $menu.find("p").trigger("click");
 
     assert.deepEqual(fired, [], "the menu is still open");
+  });
+
+  QUnit.module("BootSideMenu: resizing", {
+    beforeEach: function () {
+      clearCookies();
+      jQuery.fx.off = true;
+    },
+
+    afterEach: function () {
+      jQuery("body").css({ marginLeft: "", marginRight: "" });
+      jQuery.fx.off = false;
+      restoreWindowWidth();
+      clearCookies();
+    },
+  });
+
+  // Regression test: the debounce used to compare the milliseconds within the
+  // current second, so a resize beginning late enough in one was dropped.
+  QUnit.test("a resize late in a second is handled", function (assert) {
+    var done = assert.async();
+
+    var instance = jQuery("#test")
+      .BootSideMenu({ remember: false, duration: 0, pushBody: true })
+      .data("BootSideMenu");
+
+    assert.equal(instance.settings.pushBody, true, "pushing to begin with");
+
+    setWindowWidth(400);
+
+    atLateMillisecond(function () {
+      window.dispatchEvent(new Event("resize"));
+
+      window.setTimeout(function () {
+        assert.equal(
+          instance.settings.pushBody,
+          false,
+          "the narrow window was noticed",
+        );
+        done();
+      }, 400);
+    });
   });
 
   QUnit.module("BootSideMenu: layout", {

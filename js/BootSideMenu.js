@@ -89,8 +89,7 @@
 
     var $DOMBody = $("body", document);
 
-    var resizeStart;
-    var resizeEnd;
+    var resizeTimer;
     var wait = 250;
     //var options = $.extend({}, defaults, userOptions);
 
@@ -185,20 +184,7 @@
 
       $(document).on("click", onDocumentClick);
 
-      window.addEventListener(
-        "resize",
-        function () {
-          resizeStart = new Date().getMilliseconds();
-          resizeEnd = resizeStart + wait;
-          setTimeout(function () {
-            var now = new Date().getMilliseconds();
-            if (now > resizeEnd) {
-              onResize();
-            }
-          }, wait);
-        },
-        false,
-      );
+      window.addEventListener("resize", onWindowResize, false);
     };
 
     /*
@@ -242,6 +228,11 @@
       ) {
         closeMenu(true);
       }
+    }
+
+    function onWindowResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(onResize, wait);
     }
 
     function onItemClick() {
