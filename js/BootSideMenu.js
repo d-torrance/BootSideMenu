@@ -233,6 +233,10 @@
       return $menu;
     };
 
+    plugin.isOpen = function () {
+      return $menu.status === "opened";
+    };
+
     // fire up the plugin!
     // call the "constructor" method
     plugin.init();

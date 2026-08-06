@@ -286,6 +286,7 @@
     assert.equal(typeof instance.open, "function", "open()");
     assert.equal(typeof instance.close, "function", "close()");
     assert.equal(typeof instance.toggle, "function", "toggle()");
+    assert.equal(typeof instance.isOpen, "function", "isOpen()");
     assert.equal(instance.settings.side, "right", "settings are readable");
   });
 
@@ -468,6 +469,18 @@
       $menu[0],
       "open() returns the matched elements",
     );
+  });
+
+  QUnit.test("isOpen() reports the menu state", function (assert) {
+    var instance = jQuery("#test")
+      .BootSideMenu({ remember: false, duration: 0, closeOnClick: false })
+      .data("BootSideMenu");
+
+    instance.close();
+    assert.ok(!instance.isOpen(), "closed");
+
+    instance.open();
+    assert.ok(instance.isOpen(), "opened");
   });
 
   // Regression test: open() and close() used to call the internal helpers
