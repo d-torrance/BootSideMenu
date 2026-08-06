@@ -354,6 +354,13 @@
     }
 
     // these two were spelled out again here, branch for branch
+    function animationDuration() {
+      return window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0
+        : plugin.settings.duration;
+    }
+
     function startDefault() {
       if (plugin.settings.autoClose) {
         startClosed();
@@ -414,7 +421,7 @@
         if (plugin.settings.pushBody) {
           $DOMBody.animate(
             { marginLeft: bodyProperties.originalMarginLeft },
-            { duration: plugin.settings.duration },
+            { duration: animationDuration() },
           );
           bodyPushed = false;
         }
@@ -424,7 +431,7 @@
             left: -($menu.width() + 2),
           },
           {
-            duration: plugin.settings.duration,
+            duration: animationDuration(),
             done: function () {
               switchArrow("left");
               setStatus("closed");
@@ -444,7 +451,7 @@
         if (plugin.settings.pushBody) {
           $DOMBody.animate(
             { marginRight: bodyProperties.originalMarginRight },
-            { duration: plugin.settings.duration },
+            { duration: animationDuration() },
           );
           bodyPushed = false;
         }
@@ -454,7 +461,7 @@
             right: -($menu.width() + 2),
           },
           {
-            duration: plugin.settings.duration,
+            duration: animationDuration(),
             done: function () {
               switchArrow("right");
               setStatus("closed");
@@ -491,7 +498,7 @@
         if (plugin.settings.pushBody) {
           $DOMBody.animate(
             { marginLeft: $menu.width() + 20 },
-            { duration: plugin.settings.duration },
+            { duration: animationDuration() },
           );
           bodyPushed = true;
         }
@@ -501,7 +508,7 @@
             left: 0,
           },
           {
-            duration: plugin.settings.duration,
+            duration: animationDuration(),
             done: function () {
               switchArrow("right");
               setStatus("opened");
@@ -521,7 +528,7 @@
         if (plugin.settings.pushBody) {
           $DOMBody.animate(
             { marginRight: $menu.width() + 20 },
-            { duration: plugin.settings.duration },
+            { duration: animationDuration() },
           );
           bodyPushed = true;
         }
@@ -531,7 +538,7 @@
             right: 0,
           },
           {
-            duration: plugin.settings.duration,
+            duration: animationDuration(),
             done: function () {
               switchArrow("left");
               setStatus("opened");
