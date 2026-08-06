@@ -32,6 +32,11 @@
     factory(jQuery);
   }
 })(function ($) {
+  // Each instance namespaces the handlers it binds on the document and on the
+  // menu, so that destroy() can unbind exactly its own and leave any other
+  // menu on the page alone.
+  var instanceCount = 0;
+
   // here we go!
   $.BootSideMenu = function (element, userOptions) {
     var defaults = {
@@ -93,8 +98,14 @@
     // could not tell "restore the margin we set" from "never touched it"
     var bodyPushed = false;
 
+    // bodyPushed is cleared as soon as a closing animation starts, so it
+    // cannot answer "did we ever write a body margin?" -- which is what
+    // destroy() needs in order to put it back
+    var bodyTouched = false;
+
     var $DOMBody = $("body", document);
 
+    var namespace = "bootsidemenu" + ++instanceCount;
     var resizeTimer;
     var wait = 250;
     //var options = $.extend({}, defaults, userOptions);
@@ -181,31 +192,24 @@
       $('[data-bs-toggle="collapse"]', $menu).each(function () {
         var $icon = $("<span/>");
         $icon.addClass("icon");
+        // tag the ones we injected, so destroy() removes only those
+        $icon.addClass("bootsidemenu-icon");
         $icon.addClass(plugin.settings.icons.right);
 
         $(this).prepend($icon);
       });
 
-      $menu.off("click", '.toggler[data-whois="toggler"]', toggle);
-      $menu.on("click", '.toggler[data-whois="toggler"]', toggle);
-      $menu.on("keydown", '.toggler[data-whois="toggler"]', onTogglerKeydown);
+      $menu.on("click." + namespace, '.toggler[data-whois="toggler"]', toggle);
+      $menu.on(
+        "keydown." + namespace,
+        '.toggler[data-whois="toggler"]',
+        onTogglerKeydown,
+      );
+      $menu.on("click." + namespace, ".list-group-item", onListItemClick);
+      $menu.on("click." + namespace, "a.list-group-item", onItemClick);
 
-      $menu.off("click", ".list-group-item");
-      $menu.on("click", ".list-group-item", function () {
-        $menu.find(".list-group-item").each(function () {
-          $(this).removeClass("active");
-        });
-        $(this).addClass("active");
-        $(".icon", $(this))
-          .toggleClass(plugin.settings.icons.right)
-          .toggleClass(plugin.settings.icons.down);
-      });
-
-      $menu.off("click", "a.list-group-item", onItemClick);
-      $menu.on("click", "a.list-group-item", onItemClick);
-
-      $(document).on("click", onDocumentClick);
-      $(document).on("keydown", onDocumentKeydown);
+      $(document).on("click." + namespace, onDocumentClick);
+      $(document).on("keydown." + namespace, onDocumentKeydown);
 
       window.addEventListener("resize", onWindowResize, false);
     };
@@ -235,6 +239,54 @@
 
     plugin.isOpen = function () {
       return $menu.status === "opened";
+    };
+
+    // Undo everything init() did, so that the element can be handed back to
+    // the caller in the state it was in -- or initialized again with different
+    // options, which the guard in $.fn.BootSideMenu otherwise makes
+    // impossible.  The stored state is deliberately left alone: remember
+    // should still remember.
+    plugin.destroy = function () {
+      // Stop anything still in flight first.  A "done" callback firing after
+      // the teardown would reach for a toggler that is no longer there, and a
+      // half-finished body animation would put the margin back on after we
+      // have taken it off.  stop() without jumping to the end rejects those
+      // callbacks rather than running them.
+      $menu.stop(true, false);
+      $DOMBody.stop(true, false);
+
+      $(document).off("." + namespace);
+      window.removeEventListener("resize", onWindowResize, false);
+      clearTimeout(resizeTimer);
+      $menu.off("." + namespace);
+
+      if (bodyTouched) {
+        $DOMBody.css(bodyMarginProperty(), originalBodyMargin());
+        bodyPushed = false;
+      }
+
+      $menu.find(".bootsidemenu-icon").remove();
+      $menu.toggler.remove();
+
+      if ($menu.wrapper.contents().length) {
+        $menu.wrapper.contents().unwrap();
+      } else {
+        $menu.wrapper.remove();
+      }
+
+      $menu
+        .removeClass("container bootsidemenu")
+        .removeClass("bootsidemenu-" + plugin.settings.side)
+        .removeClass(plugin.settings.theme)
+        .css({ width: "", left: "", right: "", display: "" });
+
+      delete $menu.status;
+      delete $menu.toggler;
+      delete $menu.wrapper;
+
+      $element.removeData("BootSideMenu");
+
+      return $menu;
     };
 
     // fire up the plugin!
@@ -283,6 +335,16 @@
     function onWindowResize() {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(onResize, wait);
+    }
+
+    function onListItemClick() {
+      $menu.find(".list-group-item").each(function () {
+        $(this).removeClass("active");
+      });
+      $(this).addClass("active");
+      $(".icon", $(this))
+        .toggleClass(plugin.settings.icons.right)
+        .toggleClass(plugin.settings.icons.down);
     }
 
     function onItemClick() {
@@ -351,6 +413,7 @@
       if (plugin.settings.pushBody) {
         $DOMBody.css(bodyMarginProperty(), $menu.width() + 20);
         bodyPushed = true;
+        bodyTouched = true;
       } else if (bodyPushed) {
         $DOMBody.css(bodyMarginProperty(), originalBodyMargin());
         bodyPushed = false;
@@ -428,6 +491,7 @@
             { duration: animationDuration() },
           );
           bodyPushed = false;
+          bodyTouched = true;
         }
 
         $menu.animate(
@@ -458,6 +522,7 @@
             { duration: animationDuration() },
           );
           bodyPushed = false;
+          bodyTouched = true;
         }
 
         $menu.animate(
@@ -505,6 +570,7 @@
             { duration: animationDuration() },
           );
           bodyPushed = true;
+          bodyTouched = true;
         }
 
         $menu.animate(
@@ -535,6 +601,7 @@
             { duration: animationDuration() },
           );
           bodyPushed = true;
+          bodyTouched = true;
         }
 
         $menu.animate(
@@ -663,6 +730,10 @@
 
     $.fn.BootSideMenu.toggle = function () {
       return eachInstance("toggle");
+    };
+
+    $.fn.BootSideMenu.destroy = function () {
+      return eachInstance("destroy");
     };
 
     // iterate through the DOM elements we are attaching the plugin to

@@ -287,6 +287,7 @@
     assert.equal(typeof instance.close, "function", "close()");
     assert.equal(typeof instance.toggle, "function", "toggle()");
     assert.equal(typeof instance.isOpen, "function", "isOpen()");
+    assert.equal(typeof instance.destroy, "function", "destroy()");
     assert.equal(instance.settings.side, "right", "settings are readable");
   });
 
@@ -796,6 +797,137 @@
     jQuery(document).trigger(keydown("Escape"));
 
     assert.equal(toggler($menu).attr("aria-expanded"), "true", "still open");
+  });
+
+  QUnit.module("BootSideMenu: destroy", hooks);
+
+  QUnit.test("destroy() gives the content back", function (assert) {
+    var $menu = jQuery("#test");
+    var $paragraph = jQuery("<p/>").text("inner content").appendTo($menu);
+
+    $menu.BootSideMenu({ remember: false, duration: 0 });
+    $menu.data("BootSideMenu").destroy();
+
+    assert.strictEqual(
+      $menu.find("p")[0],
+      $paragraph[0],
+      "the original node is back where it started",
+    );
+    assert.equal($menu.find(".menu-wrapper").length, 0, "no wrapper left");
+    assert.equal($menu.find(".toggler").length, 0, "no toggler left");
+    assert.equal($menu.attr("class"), "", "no classes left");
+    assert.strictEqual(
+      $menu.data("BootSideMenu"),
+      undefined,
+      "the instance is forgotten",
+    );
+  });
+
+  QUnit.test("destroy() copes with an empty menu", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({ remember: false, duration: 0 });
+
+    $menu.data("BootSideMenu").destroy();
+
+    assert.equal($menu.html(), "", "nothing is left behind");
+  });
+
+  QUnit.test("destroy() removes the injected icons", function (assert) {
+    var $menu = jQuery("#test");
+    $menu.html(
+      '<a class="list-group-item" data-bs-toggle="collapse" href="#c">item</a>',
+    );
+
+    $menu.BootSideMenu({ remember: false, duration: 0 });
+    $menu.data("BootSideMenu").destroy();
+
+    assert.equal($menu.find(".icon").length, 0, "no icons left");
+    assert.equal($menu.find("a").text(), "item", "the link is untouched");
+  });
+
+  // Regression test: the document and window handlers were bound per instance
+  // and never unbound, so a discarded menu kept reacting to clicks.
+  QUnit.test("destroy() unbinds the document handler", function (assert) {
+    var fired = [];
+
+    var instance = jQuery("#test")
+      .BootSideMenu({
+        remember: false,
+        duration: 0,
+        closeOnClick: true,
+        onClose: function () {
+          fired.push("onClose");
+        },
+      })
+      .data("BootSideMenu");
+
+    instance.destroy();
+    jQuery(document).trigger("click");
+
+    assert.deepEqual(fired, [], "nothing responded");
+  });
+
+  // Regression test: the callback at the end of an animation reaches for the
+  // toggler, which destroy() has by then removed.
+  QUnit.test("destroy() during an animation is safe", function (assert) {
+    var done = assert.async();
+    jQuery.fx.off = false;
+
+    var $menu = jQuery("#test");
+    $menu.html("<p>inner content</p>");
+
+    // before the menu exists: this is what destroy() has to get back to
+    var before = parseFloat(jQuery("body").css("margin-left")) || 0;
+
+    var instance = $menu
+      .BootSideMenu({
+        remember: false,
+        duration: 100,
+        pushBody: true,
+        closeOnClick: false,
+      })
+      .data("BootSideMenu");
+
+    instance.close();
+
+    window.setTimeout(function () {
+      instance.destroy();
+
+      // long enough for the animation that was running to have finished
+      window.setTimeout(function () {
+        assert.equal($menu.find(".toggler").length, 0, "still torn down");
+        assert.equal(
+          parseFloat(jQuery("body").css("margin-left")) || 0,
+          before,
+          "and the body margin stayed put",
+        );
+        done();
+      }, 300);
+    }, 20);
+  });
+
+  QUnit.test("the menu can be built again after destroy()", function (assert) {
+    var $menu = jQuery("#test");
+
+    $menu.BootSideMenu({ side: "left", remember: false, duration: 0 });
+    $menu.data("BootSideMenu").destroy();
+    $menu.BootSideMenu({ side: "right", remember: false, duration: 0 });
+
+    assert.ok(
+      $menu.hasClass("bootsidemenu-right"),
+      "the new options are applied this time",
+    );
+    assert.equal($menu.find(".toggler").length, 1, "exactly one toggler");
+  });
+
+  QUnit.test("the static destroy() is exposed", function (assert) {
+    var $menu = jQuery("#test").BootSideMenu({
+      remember: false,
+      duration: 0,
+    });
+
+    $menu.BootSideMenu.destroy();
+
+    assert.strictEqual($menu.data("BootSideMenu"), undefined);
   });
 
   QUnit.module("BootSideMenu: resizing", hooks);
