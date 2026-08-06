@@ -129,13 +129,13 @@
       }
 
       $menu.id = $menu.attr("id");
-      $menu.cookieName = "bsm2-" + $menu.id;
+      $menu.storageKey = "bsm2-" + $menu.id;
       $menu.toggler = $menu.find('[data-whois="toggler"]');
       $menu.originalPushBody = plugin.settings.pushBody;
       $menu.originalCloseOnClick = plugin.settings.closeOnClick;
 
       if (plugin.settings.remember) {
-        prevStatus = readCookie($menu.cookieName);
+        prevStatus = readStatus($menu.storageKey);
       } else {
         prevStatus = null;
       }
@@ -421,7 +421,7 @@
       }
 
       if (plugin.settings.remember) {
-        storeCookie($menu.cookieName, "closed");
+        storeStatus($menu.storageKey, "closed");
       }
     }
 
@@ -498,7 +498,7 @@
       }
 
       if (plugin.settings.remember) {
-        storeCookie($menu.cookieName, "opened");
+        storeStatus($menu.storageKey, "opened");
       }
     }
 
@@ -514,11 +514,36 @@
       }
     }
 
-    function storeCookie(nome, valore) {
+    // Written to both stores because neither covers everything: a page opened
+    // from the filesystem gets no cookies at all in Chrome, while a browser
+    // with storage turned off (or Safari in private mode) throws on so much as
+    // touching localStorage.  Reading falls back to the cookie so that state
+    // saved by an older version is still honoured.
+    function storeStatus(name, value) {
+      try {
+        window.localStorage.setItem(name, value);
+      } catch {
+        // no storage available; the cookie below may still work
+      }
+
       var d = new Date();
       d.setTime(d.getTime() + 24 * 60 * 60 * 1000);
       var expires = "expires=" + d.toUTCString();
-      document.cookie = nome + "=" + valore + "; " + expires + "; path=/";
+      document.cookie =
+        name + "=" + value + "; " + expires + "; path=/; SameSite=Lax";
+    }
+
+    function readStatus(name) {
+      try {
+        var stored = window.localStorage.getItem(name);
+        if (stored) {
+          return stored;
+        }
+      } catch {
+        // fall through to the cookie
+      }
+
+      return readCookie(name);
     }
 
     function readCookie(nome) {

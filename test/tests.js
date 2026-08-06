@@ -20,7 +20,7 @@
     (hasLayout ? QUnit.test : QUnit.skip)(name, callback);
   }
 
-  function clearCookies() {
+  function clearStorage() {
     document.cookie.split(";").forEach(function (cookie) {
       var name = cookie.split("=")[0].replace(/^\s+/, "");
       if (name) {
@@ -28,6 +28,12 @@
           name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
       }
     });
+
+    try {
+      window.localStorage.clear();
+    } catch {
+      // no storage here; nothing to clear
+    }
   }
 
   // What the plugin reads for $(window).width() is documentElement.clientWidth,
@@ -77,9 +83,9 @@
     window.setTimeout(callback, ms >= 750 ? 0 : 750 - ms);
   }
 
-  QUnit.module("BootSideMenu", {
+  var hooks = {
     beforeEach: function () {
-      clearCookies();
+      clearStorage();
 
       // #qunit-fixture resets the DOM between tests, but not the body
       // margins that pushBody sets, nor the animation queue.
@@ -89,9 +95,12 @@
     afterEach: function () {
       jQuery("body").css({ marginLeft: "", marginRight: "" });
       jQuery.fx.off = false;
-      clearCookies();
+      restoreWindowWidth();
+      clearStorage();
     },
-  });
+  };
+
+  QUnit.module("BootSideMenu", hooks);
 
   QUnit.test("registered as a jQuery plugin", function (assert) {
     assert.equal(typeof jQuery.fn.BootSideMenu, "function");
@@ -280,26 +289,20 @@
     assert.equal(seen.length, 1, "it received the menu");
   });
 
-  QUnit.module("BootSideMenu: cookies", {
-    beforeEach: function () {
-      clearCookies();
-      jQuery.fx.off = true;
-    },
+  QUnit.module("BootSideMenu: remembering state", hooks);
 
-    afterEach: function () {
-      jQuery("body").css({ marginLeft: "", marginRight: "" });
-      jQuery.fx.off = false;
-      clearCookies();
-    },
-  });
-
-  QUnit.test("remember: false writes no cookie", function (assert) {
+  QUnit.test("remember: false stores nothing", function (assert) {
     jQuery("#test")
       .BootSideMenu({ remember: false, duration: 0 })
       .data("BootSideMenu")
       .close();
 
     assert.equal(document.cookie.indexOf("bsm2-"), -1, document.cookie);
+    assert.strictEqual(
+      window.localStorage.getItem("bsm2-test"),
+      null,
+      "nothing in localStorage either",
+    );
   });
 
   QUnit.test("remember: true persists the closed state", function (assert) {
@@ -308,9 +311,14 @@
       .data("BootSideMenu")
       .close();
 
+    assert.equal(
+      window.localStorage.getItem("bsm2-test"),
+      "closed",
+      "stored in localStorage",
+    );
     assert.ok(
       document.cookie.indexOf("bsm2-test=closed") !== -1,
-      document.cookie,
+      "and in a cookie: " + document.cookie,
     );
   });
 
@@ -320,35 +328,67 @@
       .data("BootSideMenu")
       .open();
 
+    assert.equal(
+      window.localStorage.getItem("bsm2-test"),
+      "opened",
+      "stored in localStorage",
+    );
     assert.ok(
       document.cookie.indexOf("bsm2-test=opened") !== -1,
-      document.cookie,
+      "and in a cookie: " + document.cookie,
     );
   });
 
   QUnit.test("a stored closed state is read back on init", function (assert) {
-    document.cookie = "bsm2-test=closed; path=/";
+    window.localStorage.setItem("bsm2-test", "closed");
 
     jQuery("#test").BootSideMenu({ remember: true, duration: 0 });
 
     assert.ok(
-      document.cookie.indexOf("bsm2-test=closed") !== -1,
-      "the menu started from the stored state",
+      jQuery("#test").find(".toggler .icon").hasClass("fa-chevron-right"),
+      "the menu started closed, as stored",
     );
   });
 
-  QUnit.module("BootSideMenu: methods and events", {
-    beforeEach: function () {
-      clearCookies();
-      jQuery.fx.off = true;
-    },
+  // Cookies are still read, so a menu remembered by an older version -- or by
+  // a browser where localStorage is unavailable -- keeps its state.
+  QUnit.test("a state stored only in a cookie is honoured", function (assert) {
+    document.cookie = "bsm2-test=opened; path=/";
 
-    afterEach: function () {
-      jQuery("body").css({ marginLeft: "", marginRight: "" });
-      jQuery.fx.off = false;
-      clearCookies();
-    },
+    jQuery("#test").BootSideMenu({
+      remember: true,
+      duration: 0,
+      autoClose: true,
+    });
+
+    assert.equal(
+      window.localStorage.getItem("bsm2-test"),
+      null,
+      "nothing in localStorage to read",
+    );
+    assert.ok(
+      jQuery("#test").find(".toggler .icon").hasClass("fa-chevron-left"),
+      "the menu started open, as the cookie said, despite autoClose",
+    );
   });
+
+  QUnit.test("localStorage wins over a stale cookie", function (assert) {
+    document.cookie = "bsm2-test=closed; path=/";
+    window.localStorage.setItem("bsm2-test", "opened");
+
+    jQuery("#test").BootSideMenu({
+      remember: true,
+      duration: 0,
+      autoClose: true,
+    });
+
+    assert.ok(
+      jQuery("#test").find(".toggler .icon").hasClass("fa-chevron-left"),
+      "the menu started open, as localStorage said",
+    );
+  });
+
+  QUnit.module("BootSideMenu: methods and events", hooks);
 
   // Regression test: these three are documented in the README, but used to
   // throw ReferenceError because they called the plugin's private functions
@@ -496,18 +536,7 @@
       .open();
   });
 
-  QUnit.module("BootSideMenu: closeOnClick", {
-    beforeEach: function () {
-      clearCookies();
-      jQuery.fx.off = true;
-    },
-
-    afterEach: function () {
-      jQuery("body").css({ marginLeft: "", marginRight: "" });
-      jQuery.fx.off = false;
-      clearCookies();
-    },
-  });
+  QUnit.module("BootSideMenu: closeOnClick", hooks);
 
   // closeOnClick: false is the setting every known consumer uses.
   QUnit.test("closeOnClick: false ignores outside clicks", function (assert) {
@@ -588,19 +617,7 @@
     assert.deepEqual(fired, [], "the menu is still open");
   });
 
-  QUnit.module("BootSideMenu: resizing", {
-    beforeEach: function () {
-      clearCookies();
-      jQuery.fx.off = true;
-    },
-
-    afterEach: function () {
-      jQuery("body").css({ marginLeft: "", marginRight: "" });
-      jQuery.fx.off = false;
-      restoreWindowWidth();
-      clearCookies();
-    },
-  });
+  QUnit.module("BootSideMenu: resizing", hooks);
 
   // Regression test: the debounce used to compare the milliseconds within the
   // current second, so a resize beginning late enough in one was dropped.
@@ -666,18 +683,7 @@
     });
   });
 
-  QUnit.module("BootSideMenu: layout", {
-    beforeEach: function () {
-      clearCookies();
-      jQuery.fx.off = true;
-    },
-
-    afterEach: function () {
-      jQuery("body").css({ marginLeft: "", marginRight: "" });
-      jQuery.fx.off = false;
-      clearCookies();
-    },
-  });
+  QUnit.module("BootSideMenu: layout", hooks);
 
   testLayout("width is measurable", function (assert) {
     var $menu = jQuery("#test").BootSideMenu({
