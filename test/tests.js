@@ -611,6 +611,43 @@
     });
   });
 
+  // Regression test: the small-body rules turn pushBody off, but nothing ever
+  // took the margin they had already set back off the body.
+  QUnit.test("shrinking the window stops pushing the body", function (assert) {
+    var done = assert.async();
+
+    var before = jQuery("body").css("margin-left");
+
+    jQuery("#test").BootSideMenu({
+      side: "left",
+      remember: false,
+      duration: 0,
+      pushBody: true,
+      width: "200px",
+    });
+
+    assert.notEqual(
+      jQuery("body").css("margin-left"),
+      before,
+      "the body starts out pushed",
+    );
+
+    setWindowWidth(400);
+
+    atLateMillisecond(function () {
+      window.dispatchEvent(new Event("resize"));
+
+      window.setTimeout(function () {
+        assert.equal(
+          parseFloat(jQuery("body").css("margin-left")) || 0,
+          parseFloat(before) || 0,
+          "the margin is back where it started",
+        );
+        done();
+      }, 400);
+    });
+  });
+
   QUnit.module("BootSideMenu: layout", {
     beforeEach: function () {
       clearCookies();

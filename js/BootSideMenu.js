@@ -87,6 +87,10 @@
     var prevStatus;
     var bodyProperties = {};
 
+    // whether we are the ones holding the body margin open; without this we
+    // could not tell "restore the margin we set" from "never touched it"
+    var bodyPushed = false;
+
     var $DOMBody = $("body", document);
 
     var resizeTimer;
@@ -273,47 +277,36 @@
       $icon.addClass("icon");
     }
 
+    function bodyMarginProperty() {
+      return plugin.settings.side === "right" ? "marginRight" : "marginLeft";
+    }
+
+    function originalBodyMargin() {
+      return plugin.settings.side === "right"
+        ? bodyProperties.originalMarginRight
+        : bodyProperties.originalMarginLeft;
+    }
+
+    // Set the body margin without animating, for startup and for resizes.
+    // The "else" is the half that used to be missing: shrinking the window
+    // past the small-body threshold turns pushBody off, and the body was then
+    // left holding a margin that nothing would ever clear.
+    function applyBodyMargin() {
+      if (plugin.settings.pushBody) {
+        $DOMBody.css(bodyMarginProperty(), $menu.width() + 20);
+        bodyPushed = true;
+      } else if (bodyPushed) {
+        $DOMBody.css(bodyMarginProperty(), originalBodyMargin());
+        bodyPushed = false;
+      }
+    }
+
+    // these two were spelled out again here, branch for branch
     function startDefault() {
-      if (plugin.settings.side === "left") {
-        if (plugin.settings.autoClose) {
-          $menu.status = "closed";
-          $menu.hide().animate(
-            {
-              left: -($menu.width() + 2),
-            },
-            1,
-            function () {
-              $menu.show();
-              switchArrow("left");
-            },
-          );
-        } else if (!plugin.settings.autoClose) {
-          switchArrow("right");
-          $menu.status = "opened";
-          if (plugin.settings.pushBody) {
-            $DOMBody.css("margin-left", $menu.width() + 20);
-          }
-        }
-      } else if (plugin.settings.side === "right") {
-        if (plugin.settings.autoClose) {
-          $menu.status = "closed";
-          $menu.hide().animate(
-            {
-              right: -($menu.width() + 2),
-            },
-            1,
-            function () {
-              $menu.show();
-              switchArrow("right");
-            },
-          );
-        } else {
-          switchArrow("left");
-          $menu.status = "opened";
-          if (plugin.settings.pushBody) {
-            $DOMBody.css("margin-right", $menu.width() + 20);
-          }
-        }
+      if (plugin.settings.autoClose) {
+        startClosed();
+      } else {
+        startOpened();
       }
     }
 
@@ -346,19 +339,14 @@
     }
 
     function startOpened() {
-      if (plugin.settings.side === "left") {
-        switchArrow("right");
-        $menu.status = "opened";
-        if (plugin.settings.pushBody) {
-          $DOMBody.css("margin-left", $menu.width() + 20);
-        }
-      } else if (plugin.settings.side === "right") {
+      if (plugin.settings.side === "right") {
         switchArrow("left");
-        $menu.status = "opened";
-        if (plugin.settings.pushBody) {
-          $DOMBody.css("margin-right", $menu.width() + 20);
-        }
+      } else {
+        switchArrow("right");
       }
+
+      $menu.status = "opened";
+      applyBodyMargin();
     }
 
     function closeMenu(execFunctions) {
@@ -376,6 +364,7 @@
             { marginLeft: bodyProperties.originalMarginLeft },
             { duration: plugin.settings.duration },
           );
+          bodyPushed = false;
         }
 
         $menu.animate(
@@ -405,6 +394,7 @@
             { marginRight: bodyProperties.originalMarginRight },
             { duration: plugin.settings.duration },
           );
+          bodyPushed = false;
         }
 
         $menu.animate(
@@ -451,6 +441,7 @@
             { marginLeft: $menu.width() + 20 },
             { duration: plugin.settings.duration },
           );
+          bodyPushed = true;
         }
 
         $menu.animate(
@@ -480,6 +471,7 @@
             { marginRight: $menu.width() + 20 },
             { duration: plugin.settings.duration },
           );
+          bodyPushed = true;
         }
 
         $menu.animate(
