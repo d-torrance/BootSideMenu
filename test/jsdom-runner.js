@@ -23,13 +23,8 @@ const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.join(__dirname, "..");
 
-// qunit's package exports allow this subpath, but jquery's do not, so build
-// jquery's path by hand.  Requiring jquery outright is also not an option: its
-// distribution throws unless a window with a document already exists.
-const qunitJs = process.env.QUNIT_JS || require.resolve("qunit/qunit/qunit.js");
-const jqueryJs =
-  process.env.JQUERY_JS ||
-  path.join(root, "node_modules", "jquery", "dist", "jquery.js");
+const qunitJs = process.env.QUNIT_JS || require.resolve("qunit");
+const jqueryJs = process.env.JQUERY_JS || require.resolve("jquery");
 const pluginJs =
   process.env.PLUGIN_JS || path.join(root, "js", "BootSideMenu.js");
 const testsJs = process.env.TESTS_JS || path.join(__dirname, "tests.js");
