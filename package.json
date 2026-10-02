@@ -44,7 +44,7 @@
     "jquery-test-runner": "^0.3.0",
     "prettier": "^3.8.1",
     "prettylint": "^2.0.0",
-    "qunit": "^2.25.0",
+    "qunit": "^3.0.0",
     "terser": "^5.44.1"
   },
   "scripts": {
